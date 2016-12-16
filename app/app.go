@@ -5,11 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"google.golang.org/appengine"
-	"google.golang.org/appengine/datastore"
-	"google.golang.org/appengine/log"
-
 	"github.com/gorilla/mux"
+	"google.golang.org/appengine/datastore"
 )
 
 func init() {
@@ -23,31 +20,28 @@ type EmbeddedTime struct {
 }
 
 type TestEntity struct {
-	NormalTime   time.Time
 	EmbeddedTime EmbeddedTime
+	NormalTime   time.Time
 }
 
 func do(res http.ResponseWriter, req *http.Request) {
-	te1 := TestEntity{
+	t1 := TestEntity{
 		NormalTime:   time.Now(),
 		EmbeddedTime: EmbeddedTime{Time: time.Now()},
 	}
 
-	te2 := TestEntity{}
+	t2 := TestEntity{}
 
-	props, err := datastore.SaveStruct(&te1)
+	props, err := datastore.SaveStruct(&t1)
 	if err != nil {
 		panic(err)
 	}
 
-	c := appengine.NewContext(req)
-	log.Infof(c, "%+v", props)
-
-	err = datastore.LoadStruct(&te2, props)
+	err = datastore.LoadStruct(&t2, props)
 	if err != nil {
 		res.Write([]byte(err.Error()))
 		return
 	}
 
-	res.Write([]byte(fmt.Sprintf("te1\n%+v\n\nte2\n%+v", te1, te2)))
+	res.Write([]byte(fmt.Sprintf("props\n%+v\n\nt1\n%+v\n\nt2\n%+v\n", props, t1, t2)))
 }
